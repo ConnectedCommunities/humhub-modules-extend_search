@@ -7,7 +7,7 @@ Yii::app()->moduleManager->register(array(
         'application.modules.extend_search.*',
     ),
     'events' => array(
-    	array('class' => 'TopMenuWidget', 'event' => 'onInit', 'callback' => array('Mod1Events', 'onTopMenuInit')),
+    	// array('class' => 'TopMenuWidget', 'event' => 'onInit', 'callback' => array('Mod1Events', 'onTopMenuInit')),
     ),
 ));
 ?>
