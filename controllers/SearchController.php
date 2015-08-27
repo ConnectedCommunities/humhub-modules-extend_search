@@ -81,8 +81,8 @@ class SearchController extends Controller
         $limit = HSetting::Get('paginationSize');         // Show Hits
         $hitCount = 0;      // Total Hit Count
         $query = "";        // Lucene Query
-        $append = " AND (model:User OR model:Space)";  // Appends for Lucene Query
-        // $append = "";
+        // $append = " AND (model:User OR model:Space)";  // Appends for Lucene Query
+        $append = "";
         $moreResults = false;  // Indicates if there are more hits
         $results = array();
 
