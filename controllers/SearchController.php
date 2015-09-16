@@ -81,8 +81,32 @@ class SearchController extends Controller
         $limit = HSetting::Get('paginationSize');         // Show Hits
         $hitCount = 0;      // Total Hit Count
         $query = "";        // Lucene Query
+
+        ////////////////////////////////////////////////////////
+        // Load models to include from HSetting (if there)
+        $extendSearchIncludeModelsStr = HSetting::GetText('extendSearchIncludeModels');
+        $extendSearchQuery = "";
+
+        if(!empty($extendSearchIncludeModelsStr)) {
+
+            $extendSearchIncludeModels = explode(",", $extendSearchIncludeModelsStr);
+            $extendSearchQuery = "AND ";
+
+            // prefix "model:" 
+            foreach ($extendSearchIncludeModels as $key => $extendSearchModel) {
+                $extendSearchIncludeModels[$key] = "model:".$extendSearchModel;
+            }
+
+            // implode and separate with " OR "
+            $extendSearchQuery .= "(".implode(" OR ", $extendSearchIncludeModels).")";
+
+        }
+
+        ////////////////////////////////////////////////////////
+
+
         // $append = " AND (model:User OR model:Space)";  // Appends for Lucene Query
-        $append = "";
+        $append = $extendSearchQuery;
         $moreResults = false;  // Indicates if there are more hits
         $results = array();
 
