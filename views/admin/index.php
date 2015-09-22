@@ -17,9 +17,9 @@
         )); ?>
 
             <div class="form-group">
-                <p>Customise the extended search functionality. Use a comma seperated list to specify multiple Models (e.g. User,Space) </p>
+                <p>Customise the extended search functionality.</p>
             </div>
-            
+            <hr>
             <div class="form-group">
                 <!-- show flash message after saving -->
                 <?php $this->widget('application.widgets.DataSavedWidget'); ?>
@@ -27,9 +27,15 @@
             </div>
 
             <div class="form-group">
-                <?php echo $form->labelEx($model,'extendSearchIncludeModels'); ?>
-                <?php echo $form->textArea($model, 'extendSearchIncludeModels', array('class' => 'form-control', 'rows' => '8')); ?>
-                <?php echo $form->error($model,'extendSearchIncludeModels'); ?>
+                <?php 
+                if(empty($model->extendSearchJSON)) {
+                    $model->extendSearchJSON = $model->default_extendSearchJSON;
+                }
+                ?>
+                <?php echo $form->labelEx($model,'extendSearchJSON'); ?>
+                <?php echo $form->textArea($model, 'extendSearchJSON', array('class' => 'form-control', 'rows' => '8')); ?>
+                <small>Use a comma seperated list to specify multiple Models to <u>include</u> (e.g. User,Space) </small>
+                <?php echo $form->error($model,'extendSearchJSON'); ?>
             </div>
 
             <hr>

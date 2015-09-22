@@ -18,7 +18,7 @@ class AdminController extends Controller{
 
             if ($form->validate()) {
 
-                $form->extendSearchIncludeModels = HSetting::SetText('extendSearchIncludeModels', $form->extendSearchIncludeModels);
+                $form->extendSearchJSON = HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
 
                 // set flash message
                 Yii::app()->user->setFlash('data-saved', Yii::t('AdminModule.controllers_SettingController', 'Saved'));
@@ -27,7 +27,7 @@ class AdminController extends Controller{
             }
 
         } else {
-            $form->extendSearchIncludeModels = HSetting::GetText('extendSearchIncludeModels');
+            $form->extendSearchJSON = HSetting::GetText('extendSearchJSON');
         }
 
         $this->render('index', array(
@@ -36,4 +36,22 @@ class AdminController extends Controller{
 
     }
 
+    /**
+     * Reindex all User models
+     */
+    public function actionReindexUsers() {
+
+        // Get all users
+
+        // For each user
+            // $user->save();
+
+        // Done. The afterSave listener will take over and 
+        //      do what needs to be done.
+
+        // example
+        $user = User::model()->findByPk(1);
+        $user->save();
+
+    }
 }

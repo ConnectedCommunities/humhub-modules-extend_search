@@ -81,32 +81,7 @@ class SearchController extends Controller
         $limit = HSetting::Get('paginationSize');         // Show Hits
         $hitCount = 0;      // Total Hit Count
         $query = "";        // Lucene Query
-
-        ////////////////////////////////////////////////////////
-        // Load models to include from HSetting (if there)
-        $extendSearchIncludeModelsStr = HSetting::GetText('extendSearchIncludeModels');
-        $extendSearchQuery = "";
-
-        if(!empty($extendSearchIncludeModelsStr)) {
-
-            $extendSearchIncludeModels = explode(",", $extendSearchIncludeModelsStr);
-            $extendSearchQuery = "AND ";
-
-            // prefix "model:" 
-            foreach ($extendSearchIncludeModels as $key => $extendSearchModel) {
-                $extendSearchIncludeModels[$key] = "model:".$extendSearchModel;
-            }
-
-            // implode and separate with " OR "
-            $extendSearchQuery .= "(".implode(" OR ", $extendSearchIncludeModels).")";
-
-        }
-
-        ////////////////////////////////////////////////////////
-
-
         // $append = " AND (model:User OR model:Space)";  // Appends for Lucene Query
-        $append = $extendSearchQuery;
         $moreResults = false;  // Indicates if there are more hits
         $results = array();
 
@@ -130,11 +105,13 @@ class SearchController extends Controller
         // Do Search
         if ($keyword != "") {
 
+            $query = $this->generateQueryStr($keyword);
+
             if ($currentSpace != null) {
-                $append = " AND (model:User OR model:Space OR (belongsToType:Space AND belongsToId:" . $currentSpace->id . "))";
+                $query .= " AND (model:User OR model:Space OR (belongsToType:Space AND belongsToId:" . $currentSpace->id . "))";
             }
 
-            $hits = new ArrayObject(HSearch::getInstance()->Find($keyword . "* " . $append));
+            $hits = new ArrayObject(HSearch::getInstance()->Find($query));
             $hitCount = count($hits);
 
 
@@ -225,6 +202,54 @@ class SearchController extends Controller
         }
         
         print CJSON::encode($results);
+    }
+
+    /**
+     * Generates a query string based on the provided 
+     * JSON of Models and Attributes
+     */
+    private function generateQueryStr($keyword) {
+        
+        // First, if there's no extendSearchJSON HSetting, add it
+        $form = new ExtendSearchSettingsForm;
+
+        if(empty(HSetting::GetText('extendSearchJSON'))) {
+            HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
+        }
+
+        // Generate Query String
+        $str = "{$keyword}* AND ";
+        $extendSearchJSON = json_decode(HSetting::GetText('extendSearchJSON'));
+        $extendSearchArray = (array) $extendSearchJSON;
+
+        $numberOfItems = count($extendSearchArray) - 1;
+        $itemCount = 0;
+        foreach($extendSearchJSON as $key => $extendSearchItem) {
+            $str .= "(model:{$key} ";
+
+            if(count($extendSearchItem) > 0) {
+                $numberOfAttributes = count($extendSearchItem) - 1;
+                $attributeCount = 0;
+                $str .= "AND (";
+                foreach($extendSearchItem as $attribute) {
+                    $str .= "{$attribute}: {$keyword}* ";
+                    if($attributeCount < $numberOfAttributes) $str .= " OR ";
+                    $attributeCount++;
+                }
+                $str .= ")) ";
+            } else {
+                $str .= ") ";
+            }
+
+            if($itemCount < $numberOfItems) {
+                $str .= " OR ";
+            }
+
+            $itemCount++;
+        }
+
+        return $str;
+
     }
 
 }

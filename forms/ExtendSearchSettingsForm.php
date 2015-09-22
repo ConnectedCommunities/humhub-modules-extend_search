@@ -7,21 +7,23 @@
 class ExtendSearchSettingsForm extends CFormModel {
 
     /** 
-     * Models which should be included in the search
+     * JSON of Models and Attributes 
+     * that should be included in the search
      */
-    public $extendSearchIncludeModels = [];
+    public $extendSearchJSON = [];
 
     /** 
-     * Models which should be excluded from the search
+     * Default JSON of Models and Attributes
+     * that should be included in the search
      */
-    // public $extendSearchExcludeModels = [];
+    public $default_extendSearchJSON = "{\n\t\"Space\": [], \n\t\"User\": [\"title\", \"tags\", \"username\"] \n}";
 
     /**
      * Declares the validation rules.
      */
     public function rules() {
         return array(
-            array('extendSearchIncludeModels', 'safe'),
+            array('extendSearchJSON', 'safe'),
         );
     }
 
@@ -32,7 +34,7 @@ class ExtendSearchSettingsForm extends CFormModel {
      */
     public function attributeLabels() {
         return array(
-            'extendSearchIncludeModels' => 'Models to Include',
+            'extendSearchJSON' => 'JSON of Models and Attributes that should be included in the search',
         );
     }
 

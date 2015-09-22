@@ -3,6 +3,17 @@
 class UserExtended extends User {
 
 
+    /** 
+     * Removes attributes from the model
+     * 
+     * @param array $attributes
+     * @return void
+     */
+    // public function excludeAttributes($attributes = array()) 
+    // {
+    //     // $this->unsetAttributes($attributes);
+    // }
+
     /**
      * Returns an array of informations used by search subsystem.
      * Function is defined in interface ISearchable
@@ -37,5 +48,6 @@ class UserExtended extends User {
 
         return $attributes;
     }
+
 
 }
