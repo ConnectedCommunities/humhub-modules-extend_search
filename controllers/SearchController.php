@@ -212,7 +212,6 @@ class SearchController extends Controller
         
         // First, if there's no extendSearchJSON HSetting, add it
         $form = new ExtendSearchSettingsForm;
-
         if(empty(HSetting::GetText('extendSearchJSON'))) {
             HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
         }

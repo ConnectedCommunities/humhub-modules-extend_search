@@ -23,7 +23,7 @@
             <div class="form-group">
                 <!-- show flash message after saving -->
                 <?php $this->widget('application.widgets.DataSavedWidget'); ?>
-                <?php echo $form->errorSummary($model); ?>
+                <?php // echo $form->errorSummary($model); ?>
             </div>
 
             <div class="form-group">

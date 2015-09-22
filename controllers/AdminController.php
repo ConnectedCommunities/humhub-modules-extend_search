@@ -11,19 +11,23 @@ class AdminController extends Controller{
     public function actionIndex() {
 
         $form = new ExtendSearchSettingsForm;
-
+                        
         if (isset($_POST['ExtendSearchSettingsForm'])) {
 
             $form->attributes = $_POST['ExtendSearchSettingsForm'];
 
             if ($form->validate()) {
 
-                $form->extendSearchJSON = HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
-
-                // set flash message
-                Yii::app()->user->setFlash('data-saved', Yii::t('AdminModule.controllers_SettingController', 'Saved'));
-
-                $this->redirect(Yii::app()->createUrl('//extend_search/admin/index'));
+                // Validate JSON by running it through json_decode
+                if(empty(json_decode($form->extendSearchJSON))) {
+                    $form->addError('extendSearchJSON', 'JSON is invalid or empty.');
+                } else {
+                    $form->extendSearchJSON = HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
+                    Yii::app()->user->setFlash('data-saved', Yii::t('AdminModule.controllers_SettingController', 'Saved'));
+                    $this->redirect(Yii::app()->createUrl('//extend_search/admin/index'));
+                }
+                
+                
             }
 
         } else {
