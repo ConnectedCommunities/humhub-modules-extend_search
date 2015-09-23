@@ -40,6 +40,24 @@ class AdminController extends Controller{
 
     }
 
+
+    /** 
+     * Reindex Lucene records from the 
+     * provided Model
+     */
+    public function actionReindex() 
+    {
+        
+        $model_str = Yii::app()->request->getParam('model');
+        $model = new $model_str;
+
+        foreach($model::model()->findAll() as $record) {
+            $record->save();
+        }
+
+    }
+
+
     /**
      * Reindex all User models
      */
