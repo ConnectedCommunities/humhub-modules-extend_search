@@ -52,6 +52,7 @@ class AdminController extends Controller{
         $model = new $model_str;
 
         foreach($model::model()->findAll() as $record) {
+            HSearch::getInstance()->deleteModel($record);
             $record->save();
         }
 
