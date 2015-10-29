@@ -58,6 +58,62 @@ class AdminController extends Controller{
 
     }
 
+    /**
+     * Create a content and activity records for each `Question`
+     * extend_search/admin/load&module=questionanswer&model=Question
+     */
+    public function actionLoad()
+    {
+        $module = Yii::app()->request->getParam('module');
+        $model_str = Yii::app()->request->getParam('model');
+        $model = new $model_str;
+
+        echo "Creating content and activity records for ".$module." -> ". $model_str;
+
+        // Loop through all
+        foreach($model::model()->findAll() as $record) {
+
+
+            if(empty(Activity::model()->findByAttributes(array('object_model' => $model_str, 'object_id' => $record->id)))) {
+
+                // Create activity record
+                $sql = "INSERT INTO activity (type,module,object_model,object_id,created_at,created_by,updated_at,updated_by)
+                                VALUES (:type,:module,:object_model,:object_id,:created_at,:user_id,:updated_at,:user_id);";
+                $parameters = array(
+                    ":type" => $model_str."Created",
+                    ":module" => $module,
+                    ":object_model" => 'Question',
+                    ":object_id" => $record->id,
+                    ":user_id" => $record->created_by,
+                    ":created_at" => $record->created_at,
+                    ":updated_at" => $record->updated_at,
+                );
+
+                Yii::app()->db->createCommand($sql)->execute($parameters);
+
+            }
+
+
+            // Create content record
+            if(!$record->content) {
+
+                $sql = "INSERT INTO content (guid,object_model,object_id,visibility,sticked,archived,space_id,user_id,created_at,created_by,updated_at,updated_by)
+                                VALUES (:guid, :object_model, :object_id, 1, 0, '0', NULL, :user_id, :created_at, :user_id, :updated_at, :user_id);";
+                $parameters = array(
+                    ":guid" => UUID::v4(),
+                    ":object_model" => $model_str,
+                    ":object_id" => $record->id,
+                    ":user_id" => $record->created_by,
+                    ":created_at" => $record->created_at,
+                    ":updated_at" => $record->updated_at,
+                );
+
+                Yii::app()->db->createCommand($sql)->execute($parameters);
+
+            }
+
+        }
+    }
 
     /**
      * Reindex all User models
