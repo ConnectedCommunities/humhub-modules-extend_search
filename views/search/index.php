@@ -12,18 +12,20 @@
  * @package humhub.controllers
  * @since 0.5
  */
+
+use yii\helpers\Html;
+
 ?>
 <div class="panel panel-default">
     <div class="panel-heading"><?php echo Yii::t('base', 'Search'); ?></div>
 
 
     <div class="panel-body">
-        <?php echo CHtml::beginForm(null, 'GET'); ?>
-        <?php //echo Yii::t('base', 'Keyword:') ?>
-        <?php echo CHtml::textField('keyword', $keyword, array('placeholder' => 'Keyword', 'class' => 'form-control')); ?>
-        <?php echo CHtml::hiddenField('sguid', $spaceGuid); ?><br>
-        <?php echo CHtml::submitButton(Yii::t('base', 'Search'), array('class' => 'btn btn-primary')); ?>
-        <?php echo CHtml::endForm(); ?>
+        <?php echo Html::beginForm(null, 'GET'); ?>
+        <?php echo Html::textInput('keyword', $keyword, array('placeholder' => 'Keyword', 'class' => 'form-control')); ?>
+        <?php echo Html::hiddenInput('sguid', $spaceGuid); ?><br>
+        <?php echo Html::submitButton(Yii::t('base', 'Search'), array('class' => 'btn btn-primary')); ?>
+        <?php echo Html::endForm(); ?>
     </div>
 </div>
 
@@ -49,17 +51,13 @@
 </div>
 <div class="pagination-container">
     <?php
-    $this->widget('CLinkPager', array(
-        'currentPage' => $pages->getCurrentPage(),
-        'itemCount' => $hitCount,
-        'pageSize' => $pageSize,
+    \yii\widgets\LinkPager::begin(array(
+        'pagination' => $pages,
         'maxButtonCount' => 5,
         'nextPageLabel' => '<i class="fa fa-step-forward"></i>',
         'prevPageLabel' => '<i class="fa fa-step-backward"></i>',
         'firstPageLabel' => '<i class="fa fa-fast-backward"></i>',
         'lastPageLabel' => '<i class="fa fa-fast-forward"></i>',
-        'header' => '',
-        'htmlOptions' => array('class' => 'pagination'),
     ));
     ?>
 </div>

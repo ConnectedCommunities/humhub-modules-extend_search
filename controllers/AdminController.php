@@ -1,8 +1,17 @@
 <?php
 
-class AdminController extends Controller{
+namespace humhub\modules\extend_search\controllers;
 
-	public $subLayout = "application.modules_core.admin.views._layout";
+use humhub\modules\search\engine\Search;
+use yii\web\Controller;
+use Yii;
+use humhub\modules\extend_search\forms\ExtendSearchSettingsForm;
+use humhub\models\Setting;
+use humhub\modules\search\widgets\SearchMenu;
+
+class AdminController extends Controller {
+
+	public $subLayout = "@humhub/modules/admin/views/layouts/main";
 
 
     /**
@@ -22,19 +31,19 @@ class AdminController extends Controller{
                 if(empty(json_decode($form->extendSearchJSON))) {
                     $form->addError('extendSearchJSON', 'JSON is invalid or empty.');
                 } else {
-                    $form->extendSearchJSON = HSetting::SetText('extendSearchJSON', $form->extendSearchJSON);
-                    Yii::app()->user->setFlash('data-saved', Yii::t('AdminModule.controllers_SettingController', 'Saved'));
-                    $this->redirect(Yii::app()->createUrl('//extend_search/admin/index'));
+                    $form->extendSearchJSON = Setting::SetText('extendSearchJSON', $form->extendSearchJSON);
+                    Yii::$app->session->setFlash('data-saved', Yii::t('AdminModule.controllers_SettingController', 'Saved'));
+                    $this->redirect(Yii::$app->urlManager->createUrl('//extend_search/admin/index'));
                 }
                 
                 
             }
 
         } else {
-            $form->extendSearchJSON = HSetting::GetText('extendSearchJSON');
+            $form->extendSearchJSON = Setting::GetText('extendSearchJSON');
         }
 
-        $this->render('index', array(
+        return $this->render('index', array(
             'model' => $form
         ));
 
@@ -48,11 +57,11 @@ class AdminController extends Controller{
     public function actionReindex() 
     {
         
-        $model_str = Yii::app()->request->getParam('model');
+        $model_str = Yii::$app->request->getParam('model');
         $model = new $model_str;
 
         foreach($model::model()->findAll() as $record) {
-            HSearch::getInstance()->deleteModel($record);
+            //Search::getInstance()->deleteModel($record);
             $record->save();
         }
 
@@ -64,8 +73,8 @@ class AdminController extends Controller{
      */
     public function actionLoad()
     {
-        $module = Yii::app()->request->getParam('module');
-        $model_str = Yii::app()->request->getParam('model');
+        $module = Yii::$app->request->getParam('module');
+        $model_str = Yii::$app->request->getParam('model');
         $model = new $model_str;
 
         echo "Creating content and activity records for ".$module." -> ". $model_str;
@@ -89,7 +98,7 @@ class AdminController extends Controller{
                     ":updated_at" => $record->updated_at,
                 );
 
-                Yii::app()->db->createCommand($sql)->execute($parameters);
+                Yii::$app->db->createCommand($sql)->execute($parameters);
 
             }
 
@@ -108,7 +117,7 @@ class AdminController extends Controller{
                     ":updated_at" => $record->updated_at,
                 );
 
-                Yii::app()->db->createCommand($sql)->execute($parameters);
+                Yii::$app->db->createCommand($sql)->execute($parameters);
 
             }
 

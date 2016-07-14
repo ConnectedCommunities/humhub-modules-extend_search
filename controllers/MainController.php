@@ -1,9 +1,13 @@
 <?php
 
-class MainController extends Controller{
+namespace humhub\modules\extend_search\controllers;
+use yii\web\Controller;
 
-    public function actionIndex(){
-        $this->render('index');
+class MainController extends Controller
+{
+
+    public function actionIndex() {
+        return $this->render('index');
     }
 
 }

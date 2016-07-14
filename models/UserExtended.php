@@ -1,5 +1,9 @@
 <?php
 
+namespace humhub\modules\extend_search\models;
+
+use humhub\modules\user\models\User;
+
 class UserExtended extends User {
 
 

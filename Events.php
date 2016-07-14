@@ -1,6 +1,11 @@
 <?php
 
-class ExtendSearchEvents {
+namespace humhub\modules\extend_search;
+
+use Yii;
+
+class Events extends \yii\base\Object
+{
 
     /**
      * Defines what to do if admin menu is initialized.
@@ -11,10 +16,10 @@ class ExtendSearchEvents {
     {
         $event->sender->addItem(array(
             'label' => Yii::t('ExtendSearchModule.base', 'Extend Search'),
-            'url' => Yii::app()->createUrl('//extend_search/admin/index'),
+            'url' => Yii::$app->urlManager->createUrl('//extend_search/admin/index'),
             'group' => 'manage',
             'icon' => '<i class="fa fa-search"></i>',
-            'isActive' => (Yii::app()->controller->module && Yii::app()->controller->module->id == 'extend_search' && Yii::app()->controller->id == 'admin'),
+            'isActive' => (Yii::$app->controller->module && Yii::$app->controller->module->id == 'extend_search' && Yii::$app->controller->id == 'admin'),
             'sortOrder' => 550,
         ));
 

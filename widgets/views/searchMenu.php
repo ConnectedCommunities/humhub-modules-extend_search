@@ -3,7 +3,8 @@
         <input type="text" id="search-menu-search"
                class="form-control"
                autocomplete="off"
-               placeholder="<?php echo Yii::t('base', 'Search...'); ?>">
+               name="keyword"
+               placeholder="<?php echo \Yii::t('base', 'Search...'); ?>">
 
         <div class="search-reset" id="search-search-reset"><i
                 class="fa fa-times-circle"></i></div>

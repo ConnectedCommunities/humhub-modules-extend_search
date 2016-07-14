@@ -1,10 +1,14 @@
 <?php
 
+namespace humhub\modules\extend_search\forms;
+
+use yii\base\Model;
+
 /**
  * @package humhub.modules_core.admin.forms
  * @since 0.5
  */
-class ExtendSearchSettingsForm extends CFormModel {
+class ExtendSearchSettingsForm extends Model {
 
     /** 
      * JSON of Models and Attributes 

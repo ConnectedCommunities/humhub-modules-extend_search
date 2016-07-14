@@ -1,5 +1,18 @@
 <?php
 
+namespace humhub\modules\extend_search\controllers;
+
+use humhub\modules\search\engine\ZendLuceneSearch;
+use yii\data\Pagination;
+use yii\helpers\Json;
+use yii\web\Controller;
+use Yii;
+use humhub\modules\extend_search\forms\ExtendSearchSettingsForm;
+use humhub\models\Setting;
+use humhub\modules\space\models\Space;
+use humhub\modules\search\engine\Search;
+use Zend\Stdlib\ArrayObject;
+
 /**
  * HumHub
  * Copyright © 2014 The HumHub Project
@@ -28,7 +41,10 @@
 class SearchController extends Controller
 {
 
-    public $subLayout = "_layout";
+    const SCOPE_ALL = "all";
+    const SCOPE_USER = "user";
+    const SCOPE_SPACE = "space";
+    const SCOPE_CONTENT = "content";
 
     /**
      * @return array action filters
@@ -49,7 +65,7 @@ class SearchController extends Controller
     {
         return array(
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'users' => array('@', (HSetting::Get('allowGuestAccess', 'authentication_internal')) ? "?" : "@"),
+                'users' => array('@', (Setting::Get('allowGuestAccess', 'authentication_internal')) ? "?" : "@"),
             ),
             array('deny', // deny all users
                 'users' => array('*'),
@@ -66,98 +82,24 @@ class SearchController extends Controller
     {
 
         // Get Parameters
-        $keyword = Yii::app()->request->getParam('keyword', "");
-        $spaceGuid = Yii::app()->request->getParam('sguid', "");
-        $mode = Yii::app()->request->getParam('mode', "normal");
-        $page = (int) Yii::app()->request->getParam('page', 1); // current page (pagination)
-        // Cleanup
-        $keyword = Yii::app()->input->stripClean($keyword);
-        $spaceGuid = Yii::app()->input->stripClean($spaceGuid);
+        $keyword = Yii::$app->request->getQueryParam('keyword', "");
+        $spaceGuid = Yii::$app->request->getQueryParam('sguid', "");
+        $scope = Yii::$app->request->get('scope', "");
+        $mode = Yii::$app->request->getQueryParam('mode', "normal");
+        $page = (int) Yii::$app->request->getQueryParam('page', 1); // current page (pagination)
+        $limitSpaceGuids = Yii::$app->request->get('limitSpaceGuids', "");
 
-        if ($mode != 'quick') {
-            $mode = "normal";
-        }
+        $results = [];
+        $results = Yii::$app->search->find($keyword, [
+             'page' => 1,
+             'pageSize' => 10,
+         ]);
 
-        $limit = HSetting::Get('paginationSize');         // Show Hits
-        $hitCount = 0;      // Total Hit Count
-        $query = "";        // Lucene Query
-        // $append = " AND (model:User OR model:Space)";  // Appends for Lucene Query
-        $moreResults = false;  // Indicates if there are more hits
-        $results = array();
-
-        // Quick Search shows always 1
-        if ($mode == 'quick')
-            $limit = 5;
-
-        // Load also Space if requested
-        $currentSpace = null;
-        if ($spaceGuid) {
-            $currentSpace = Space::model()->findByAttributes(array('guid' => $spaceGuid));
-        }
-
-        /*
-         * $index = new Zend_Search_Lucene_Interface_MultiSearcher();
-         * $index->addIndex(Zend_Search_Lucene::open('search/index1'));
-         * $index->addIndex(Zend_Search_Lucene::open('search/index2'));
-         * $index->find('someSearchQuery');
-         */
-
-        // Do Search
-        if ($keyword != "") {
-
-            $query = $this->generateQueryStr($keyword);
-
-            if ($currentSpace != null) {
-                $query .= " AND (model:User OR model:Space OR (belongsToType:Space AND belongsToId:" . $currentSpace->id . "))";
-            }
-
-            $hits = new ArrayObject(HSearch::getInstance()->Find($query));
-            $hitCount = count($hits);
-
-
-            // Limit Hits
-            $hits = new LimitIterator($hits->getIterator(), ($page - 1) * $limit, $limit);
-
-            if ($hitCount > $limit)
-                $moreResults = true;
-
-            // Build Results Array
-
-            foreach ($hits as $hit) {
-
-                $doc = $hit->getDocument();
-                $model = $doc->getField('model')->value;
-                $pk = $doc->getField('pk')->value;
-
-                $object = $model::model()->findByPk($pk);
-                $results[] = $object->getSearchResult();
-            }
-        }
-
-        // Create Pagination Class
-        $pages = new CPagination($hitCount);
-        $pages->setPageSize($limit);
-        $_GET['keyword'] = $keyword; // Fix for post var
-
-        if ($mode == 'quick') {
-            $this->renderPartial('quick', array(
-                'keyword' => $keyword,
-                'results' => $results,
-                'spaceGuid' => $spaceGuid,
-                'moreResults' => $moreResults,
-                'hitCount' => $hitCount,
-            ));
-        } else {
-            $this->render('index', array(
-                'keyword' => $keyword,
-                'results' => $results,
-                'spaceGuid' => $spaceGuid,
-                'moreResults' => $moreResults,
-                'pages' => $pages, // CPagination,
-                'pageSize' => $limit,
-                'hitCount' => $hitCount,
-            ));
-        }
+        return $this->renderPartial('quick', array(
+            'keyword' => $keyword,
+            'results' => $results->getResultInstances(),
+            'spaceGuid' => $spaceGuid,
+        ));
     }
 
     /**
@@ -167,8 +109,8 @@ class SearchController extends Controller
     {
 
         $results = array();
-        $keyword = Yii::app()->request->getParam('keyword', "");
-        $keyword = Yii::app()->input->stripClean(trim($keyword));
+        $keyword = Yii::$app->request->getParam('keyword', "");
+        $keyword = Yii::$app->input->stripClean(trim($keyword));
         
         if (strlen($keyword) >= 3) {
             $hits = new ArrayObject(HSearch::getInstance()->Find($keyword . "*  AND (model:User OR model:Space)"));
@@ -201,7 +143,7 @@ class SearchController extends Controller
             }
         }
         
-        print CJSON::encode($results);
+        print Json::encode($results);
     }
 
     /**
@@ -211,14 +153,14 @@ class SearchController extends Controller
     private function generateQueryStr($keyword) {
         
         // First, if there's no extendSearchJSON HSetting, add it
-        $form = new ExtendSearchSettingsForm;
-        if(empty(HSetting::GetText('extendSearchJSON'))) {
-            HSetting::SetText('extendSearchJSON', $form->default_extendSearchJSON);
+        $form = new ExtendSearchSettingsForm();
+        if(empty(Setting::GetText('extendSearchJSON'))) {
+            Setting::SetText('extendSearchJSON', $form->default_extendSearchJSON);
         }
 
         // Generate Query String
         $str = "{$keyword}* AND ";
-        $extendSearchJSON = json_decode(HSetting::GetText('extendSearchJSON'));
+        $extendSearchJSON = json_decode(Setting::GetText('extendSearchJSON'));
         $extendSearchArray = (array) $extendSearchJSON;
 
         $numberOfItems = count($extendSearchArray) - 1;
